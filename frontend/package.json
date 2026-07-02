@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postbuild": "node -e \"const fs=require('fs');fs.copyFileSync('dist/index.html','dist/200.html')\""
   },
   "dependencies": {
     "react": "^18.2.0",
