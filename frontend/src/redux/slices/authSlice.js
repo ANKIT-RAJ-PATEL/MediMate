@@ -30,9 +30,14 @@ export const getMe = createAsyncThunk('auth/getMe', async (_, { rejectWithValue 
   }
 });
 
-export const logout = createAsyncThunk('auth/logout', async () => {
-  await API.post('/auth/logout');
-  localStorage.removeItem('accessToken');
+export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
+  try {
+    await API.post('/auth/logout');
+  } catch {
+    // Ignore API errors - clear local state anyway
+  } finally {
+    localStorage.removeItem('accessToken');
+  }
 });
 
 const authSlice = createSlice({

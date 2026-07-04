@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: medimate-backend
+    name: medimind-app
     runtime: node
     buildCommand: cd frontend && npm install && npm run build && cd ../backend && npm install
     startCommand: cd backend && node server.js
@@ -8,4 +8,30 @@ services:
       - key: NODE_ENV
         value: production
       - key: CLIENT_URL
+        value: https://medimind-app.onrender.com
+      - key: MONGODB_URI
+        syncFromBranch: main
+      - key: JWT_SECRET
+        syncFromBranch: main
+      - key: JWT_REFRESH_SECRET
+        syncFromBranch: main
+      - key: CLOUDINARY_CLOUD_NAME
+        syncFromBranch: main
+      - key: CLOUDINARY_API_KEY
+        syncFromBranch: main
+      - key: CLOUDINARY_API_SECRET
+        syncFromBranch: main
+      - key: GEMINI_API_KEY
+        syncFromBranch: main
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        syncFromBranch: main
+      - key: SMTP_PASS
+        syncFromBranch: main
+      - key: GOOGLE_CLIENT_ID
+        syncFromBranch: main
+      - key: GOOGLE_CLIENT_SECRET
         syncFromBranch: main
