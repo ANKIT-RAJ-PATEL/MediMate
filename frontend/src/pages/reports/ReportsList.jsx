@@ -1,20 +1,31 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HiDocumentText, HiUpload, HiSearch } from 'react-icons/hi';
+import { HiDocumentText, HiUpload, HiSearch, HiDownload } from 'react-icons/hi';
 import { useReports } from '../../hooks/useData';
 import { formatDate, getReportTypeName } from '../../utils/helpers';
 import { LoadingSkeleton, EmptyState, PageHeader } from '../../components/common/UIComponents';
+import { exportToCSV } from '../../utils/export';
+import toast from 'react-hot-toast';
 
 export default function ReportsList() {
   const [page, setPage] = useState(1);
   const [type, setType] = useState('');
   const { reports, total, loading } = useReports(page, 10, type);
 
+  const exportReports = () => {
+    const data = reports.map(r => ({ Title: r.title, Type: getReportTypeName(r.reportType), Date: formatDate(r.createdAt), OCR: r.ocrStatus, Analysis: r.analysisStatus }));
+    exportToCSV(data, 'medimind_reports');
+    toast.success('Reports exported');
+  };
+
   return (
     <div className="page-container">
       <PageHeader title="Medical Reports" subtitle="View and manage your uploaded reports"
-        action={<Link to="/reports/upload" className="btn-primary flex items-center gap-2"><HiUpload className="w-5 h-5" /> Upload New</Link>} />
+        action={<div className="flex gap-2">
+          <button onClick={exportReports} className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-xl text-sm font-medium transition-colors"><HiDownload className="w-4 h-4" /> Export</button>
+          <Link to="/reports/upload" className="btn-primary flex items-center gap-2"><HiUpload className="w-5 h-5" /> Upload New</Link>
+        </div>} />
 
       <div className="flex items-center gap-4 mb-6">
         <div className="relative flex-1 max-w-md">

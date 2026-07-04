@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { HiDownload } from 'react-icons/hi';
 import API from '../../config/api';
 import { LoadingSkeleton, PageHeader } from '../../components/common/UIComponents';
 import { formatDate } from '../../utils/helpers';
+import { exportToCSV } from '../../utils/export';
+import toast from 'react-hot-toast';
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -29,9 +32,16 @@ export default function AnalyticsPage() {
 
   if (loading) return <div className="page-container"><LoadingSkeleton type="chart" count={3} /></div>;
 
+  const exportTimeline = () => {
+    const data = timeline.map(t => ({ Type: t.type, Title: t.title, Date: formatDate(t.date) }));
+    exportToCSV(data, 'medimind_health_timeline');
+    toast.success('Timeline exported');
+  };
+
   return (
     <div className="page-container">
-      <PageHeader title="Health Analytics" subtitle="Track your health trends over time" />
+      <PageHeader title="Health Analytics" subtitle="Track your health trends over time"
+        action={<button onClick={exportTimeline} className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-xl text-sm font-medium transition-colors"><HiDownload className="w-4 h-4" /> Export</button>} />
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6">

@@ -62,6 +62,17 @@ exports.approveDoctor = async (req, res) => {
   }
 };
 
+exports.rejectDoctor = async (req, res) => {
+  try {
+    const doctor = await Doctor.findByIdAndDelete(req.params.id);
+    if (!doctor) return res.status(404).json({ success: false, message: 'Doctor not found' });
+    await User.findByIdAndUpdate(doctor.user, { role: 'patient' });
+    res.json({ success: true, message: 'Doctor rejected and removed' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 exports.getPendingDoctors = async (req, res) => {
   try {
     const doctors = await Doctor.find({ isApproved: false }).populate('user', 'name email avatar');

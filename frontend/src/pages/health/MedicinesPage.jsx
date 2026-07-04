@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiClock, HiPlus, HiCheck, HiTrash, HiX } from 'react-icons/hi';
+import { HiClock, HiPlus, HiCheck, HiTrash, HiX, HiDownload } from 'react-icons/hi';
 import { useMedicines } from '../../hooks/useData';
 import API from '../../config/api';
 import { LoadingSkeleton, EmptyState, PageHeader } from '../../components/common/UIComponents';
 import { useForm } from 'react-hook-form';
+import { exportToCSV } from '../../utils/export';
 import toast from 'react-hot-toast';
 
 export default function MedicinesPage() {
@@ -38,10 +39,19 @@ export default function MedicinesPage() {
     } catch { toast.error('Failed'); }
   };
 
+  const exportMedicines = () => {
+    const data = medicines.map(m => ({ Name: m.name, Dosage: m.dosage, Frequency: m.frequency.replace('_', ' '), Times: m.times?.join(', '), Instructions: m.instructions || '' }));
+    exportToCSV(data, 'medimind_medicines');
+    toast.success('Medicines exported');
+  };
+
   return (
     <div className="page-container">
       <PageHeader title="Medicine Reminders" subtitle="Track and manage your medications"
-        action={<button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2"><HiPlus className="w-5 h-5" /> Add Medicine</button>} />
+        action={<div className="flex gap-2">
+          <button onClick={exportMedicines} className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-xl text-sm font-medium transition-colors"><HiDownload className="w-4 h-4" /> Export</button>
+          <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2"><HiPlus className="w-5 h-5" /> Add Medicine</button>
+        </div>} />
 
       <AnimatePresence>
         {showForm && (

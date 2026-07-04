@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { HiUserGroup, HiChip, HiDocumentText, HiCalendar, HiCheck, HiX, HiChartBar } from 'react-icons/hi';
+import { HiUserGroup, HiChip, HiDocumentText, HiCalendar, HiCheck, HiX, HiChartBar, HiDownload } from 'react-icons/hi';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import API from '../../config/api';
 import { formatDate } from '../../utils/helpers';
+import { exportToCSV } from '../../utils/export';
 import { StatCard, LoadingSkeleton, PageHeader } from '../../components/common/UIComponents';
 import toast from 'react-hot-toast';
 
@@ -37,6 +38,28 @@ export default function AdminDashboard() {
       setPendingDoctors(pendingDoctors.filter(d => d._id !== id));
       toast.success('Doctor approved');
     } catch { toast.error('Failed'); }
+  };
+
+  const rejectDoctor = async (id) => {
+    try {
+      await API.put(`/admin/doctors/${id}/reject`);
+      setPendingDoctors(pendingDoctors.filter(d => d._id !== id));
+      toast.success('Doctor rejected');
+    } catch { toast.error('Failed'); }
+  };
+
+  const toggleUserStatus = async (id, currentStatus) => {
+    try {
+      await API.put(`/admin/users/${id}/status`, { isActive: !currentStatus });
+      setUsers(users.map(u => u._id === id ? { ...u, isActive: !u.isActive } : u));
+      toast.success(`User ${currentStatus ? 'deactivated' : 'activated'}`);
+    } catch { toast.error('Failed'); }
+  };
+
+  const exportUsers = () => {
+    const data = users.map(u => ({ Name: u.name, Email: u.email, Role: u.role, Joined: formatDate(u.createdAt), Status: u.isActive ? 'Active' : 'Inactive' }));
+    exportToCSV(data, 'medimind_users');
+    toast.success('Users exported');
   };
 
   if (loading) return <div className="page-container"><LoadingSkeleton type="stat" count={4} /></div>;
@@ -84,7 +107,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="flex gap-1">
                   <button onClick={() => approveDoctor(doc._id)} className="p-2 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg"><HiCheck className="w-5 h-5" /></button>
-                  <button className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><HiX className="w-5 h-5" /></button>
+                  <button onClick={() => rejectDoctor(doc._id)} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"><HiX className="w-5 h-5" /></button>
                 </div>
               </div>
             )) : <p className="text-muted text-center py-8">No pending approvals</p>}
@@ -93,13 +116,19 @@ export default function AdminDashboard() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6">
-        <h3 className="font-bold mb-4">Recent Users</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold">Recent Users</h3>
+          <button onClick={exportUsers} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg transition-colors">
+            <HiDownload className="w-4 h-4" /> Export CSV
+          </button>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200 dark:border-slate-600">
                 <th className="text-left py-3">Name</th><th className="text-left py-3">Email</th>
-                <th className="text-left py-3">Role</th><th className="text-left py-3">Joined</th><th className="text-left py-3">Status</th>
+                <th className="text-left py-3">Role</th><th className="text-left py-3">Joined</th>
+                <th className="text-left py-3">Status</th><th className="text-left py-3">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -110,6 +139,12 @@ export default function AdminDashboard() {
                   <td className="py-3 capitalize">{u.role}</td>
                   <td className="py-3 text-muted">{formatDate(u.createdAt)}</td>
                   <td className="py-3"><span className={`text-xs px-2 py-1 rounded-full ${u.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>{u.isActive ? 'Active' : 'Inactive'}</span></td>
+                  <td className="py-3">
+                    <button onClick={() => toggleUserStatus(u._id, u.isActive)}
+                      className={`text-xs px-2 py-1 rounded-lg transition-colors ${u.isActive ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-green-100 text-green-600 hover:bg-green-200'}`}>
+                      {u.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

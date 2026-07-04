@@ -1,19 +1,38 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HiCalendar, HiSearch, HiPlus } from 'react-icons/hi';
+import { HiCalendar, HiSearch, HiPlus, HiDownload } from 'react-icons/hi';
 import { useAppointments } from '../../hooks/useData';
 import { formatDate, getStatusColor } from '../../utils/helpers';
 import { LoadingSkeleton, EmptyState, PageHeader } from '../../components/common/UIComponents';
+import { exportToCSV } from '../../utils/export';
+import toast from 'react-hot-toast';
 
 export default function AppointmentsList() {
   const [status, setStatus] = useState('');
   const { appointments, loading } = useAppointments(status);
 
+  const exportAppointments = () => {
+    const data = appointments.map(a => ({
+      Doctor: `Dr. ${a.doctor?.user?.name || 'Doctor'}`,
+      Specialization: a.doctor?.specialization || '',
+      Date: formatDate(a.appointmentDate),
+      Time: `${a.timeSlot?.startTime} - ${a.timeSlot?.endTime}`,
+      Type: a.consultationType,
+      Status: a.status,
+      Fee: `₹${a.amount}`
+    }));
+    exportToCSV(data, 'medimind_appointments');
+    toast.success('Appointments exported');
+  };
+
   return (
     <div className="page-container">
       <PageHeader title="Appointments" subtitle="Manage your doctor appointments"
-        action={<Link to="/appointments/book" className="btn-primary flex items-center gap-2"><HiPlus className="w-5 h-5" /> Book New</Link>} />
+        action={<div className="flex gap-2">
+          <button onClick={exportAppointments} className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-xl text-sm font-medium transition-colors"><HiDownload className="w-4 h-4" /> Export</button>
+          <Link to="/appointments/book" className="btn-primary flex items-center gap-2"><HiPlus className="w-5 h-5" /> Book New</Link>
+        </div>} />
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
         {['', 'pending', 'confirmed', 'completed', 'cancelled'].map(s => (
